@@ -1,38 +1,63 @@
+"""Public API for broom-sm."""
+from __future__ import annotations
 
-import pandas as pd
-import sys
+import logging
+from importlib import metadata
 
-from .broom_func.stats_tidy import stats_tidy
-from .broom_func.stats_glance import stats_glance
-from .broom_func.stats_augment import stats_augment
-from .broom_func.boot_tidy import boot_tidy
-from .broom_func.boot_glance import boot_glance
-from .broom_func.boot_augment import boot_augment
-from .broom_func.stats_power import stats_power
-from .broom_func.stats_residual_plot import stats_residual_plot
-from .broom_func.stats_ols_plot import stats_ols_plot
-from .broom_func.stats_influence_plot import stats_influence_plot
-from .broom_func.stats_chisquare_plot import stats_chisquare_plot
-from .broom_func.stats_vif import stats_vif
-from .broom_func.stats_conprob import stats_conprob
-from .broom_func.bayes_boot import bayes_boot
-from .broom_func.bayes_boot_plot import bayes_boot_plot
-from .broom_func.stats_anova_tidy import stats_anova_tidy
-from .broom_func.stats_kruskal_tidy import stats_kruskal_tidy
-from .broom_func.stats_correlation_tidy import stats_correlation_tidy
-from .broom_func.stats_formula import stats_formula
+from .tidy import (
+    stats_tidy,
+    stats_glance,
+    stats_augment,
+    stats_anova_tidy,
+    stats_kruskal_tidy,
+    stats_correlation_tidy,
+    stats_formula,
+    stats_partial_dependence,
+)
+from .bootstrap import boot_tidy, boot_glance, boot_augment
+from .diagnostics import (
+    stats_power,
+    stats_residual_plot,
+    stats_ols_plot,
+    stats_influence_plot,
+    stats_chisquare_plot,
+    stats_vif,
+    stats_conprob,
+    stats_coef_forest,
+)
+from .bayes import bayes_boot, bayes_boot_plot
+from .reporting import stats_compare, stats_report
 
-if sys.version_info[:2] >= (3, 8):
-    # TODO: Import directly (no need for conditional) when `python_requires = >= 3.8`
-    from importlib.metadata import PackageNotFoundError, version  # pragma: no cover
-else:
-    from importlib_metadata import PackageNotFoundError, version  # pragma: no cover
+LOGGER = logging.getLogger("broom_sm")
 
-try:
-    # Change here if project is renamed and does not equal the package name
-    dist_name = "broom_func"
-    __version__ = version(dist_name)
-except PackageNotFoundError:  # pragma: no cover
+try:  # pragma: no cover
+    dist_name = "broom-sm"
+    __version__ = metadata.version(dist_name)
+except metadata.PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
-finally:
-    del version, PackageNotFoundError
+
+__all__ = [
+    "stats_tidy",
+    "stats_glance",
+    "stats_augment",
+    "stats_anova_tidy",
+    "stats_kruskal_tidy",
+    "stats_correlation_tidy",
+    "stats_formula",
+    "stats_partial_dependence",
+    "boot_tidy",
+    "boot_glance",
+    "boot_augment",
+    "stats_power",
+    "stats_residual_plot",
+    "stats_ols_plot",
+    "stats_influence_plot",
+    "stats_chisquare_plot",
+    "stats_vif",
+    "stats_conprob",
+    "stats_coef_forest",
+    "bayes_boot",
+    "bayes_boot_plot",
+    "stats_compare",
+    "stats_report",
+]

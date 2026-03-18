@@ -1,25 +1,18 @@
-# broom-sm
+# broom-sm documentation
 
-Add a short description here!
+broom-sm brings [tidy-models](https://broom.tidymodels.org/) ergonomics to statsmodels. Use pandas-native verbs (`stats_tidy`, `stats_glance`, `stats_augment`) plus bootstrapping, diagnostics, Bayesian helpers, and a CLI.
 
-
-## Note
-
-> This is the main page of your project's [Sphinx] documentation. It is
-> formatted in [Markdown]. Add additional pages by creating md-files in
-> `docs` or rst-files (formatted in [reStructuredText]) and adding links to
-> them in the `Contents` section below.
->
-> Please check [Sphinx] and [MyST] for more information
-> about how to document your project and how to configure your preferences.
-
-
-## Contents
+- **Model coverage**: OLS, GLMs (Poisson, Gamma, Beta, Negative Binomial), Quantile Regression, GEE, MixedLM, and PHReg.
+- **Robust stats**: pass `cov_type`, `cov_kwds`, `family`, `link`, and `weights` directly.
+- **Extensible**: register new fitters via `MODEL_CONFIG` and reuse tidy verbs instantly.
 
 ```{toctree}
 :maxdepth: 2
+:caption: Guides
 
 Overview <readme>
+Tutorials <tutorials/index>
+How-to guides <howto/index>
 Contributions & Help <contributing>
 License <license>
 Authors <authors>
@@ -27,13 +20,6 @@ Changelog <changelog>
 Module Reference <api/modules>
 ```
 
-## Indices and tables
+## API reference
 
-* {ref}`genindex`
-* {ref}`modindex`
-* {ref}`search`
-
-[Sphinx]: http://www.sphinx-doc.org/
-[Markdown]: https://daringfireball.net/projects/markdown/
-[reStructuredText]: http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
-[MyST]: https://myst-parser.readthedocs.io/en/latest/
+The documentation is auto-generated with `sphinx.ext.autodoc` and refreshed each time you run `tox -e docs` or `sphinx-build -b html docs docs/_build/html`. All public functions live under `broom_sm.*` — explore them in the "Module Reference" section above.

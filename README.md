@@ -1,73 +1,47 @@
-<!-- These are examples of badges you might want to add to your README:
-     please update the URLs accordingly
-
-[![Built Status](https://api.cirrus-ci.com/github/<USER>/broom-sm.svg?branch=main)](https://cirrus-ci.com/github/<USER>/broom-sm)
-[![ReadTheDocs](https://readthedocs.org/projects/broom-sm/badge/?version=latest)](https://broom-sm.readthedocs.io/en/stable/)
-[![Coveralls](https://img.shields.io/coveralls/github/<USER>/broom-sm/main.svg)](https://coveralls.io/r/<USER>/broom-sm)
-[![PyPI-Server](https://img.shields.io/pypi/v/broom-sm.svg)](https://pypi.org/project/broom-sm/)
-[![Conda-Forge](https://img.shields.io/conda/vn/conda-forge/broom-sm.svg)](https://anaconda.org/conda-forge/broom-sm)
-[![Monthly Downloads](https://pepy.tech/badge/broom-sm/month)](https://pepy.tech/project/broom-sm)
-[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Twitter)](https://twitter.com/broom-sm)
--->
-
-[![Project generated with PyScaffold](https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold)](https://pyscaffold.org/)
-
 # broom-sm
 
-Python implementation of the R broom package (and other helpful functions) with a wrapper around Statsmodels.
+Tidy-style helpers for [statsmodels](https://www.statsmodels.org/) that expose the familiar `tidy / glance / augment` verbs plus bootstrapping, diagnostics, and Bayesian add-ons. broom-sm leans heavily on `pandas_flavor`, so every helper is available as a `DataFrame` method:
 
-The broom-sm module was inspired from David Robinson's broom package (r-broom) that tidy's statistical results. I built this package to be used with and compliment the pyjanitor package (python-pyjanitor) created by Eric Ma.
+```python
+import pandas as pd
+import statsmodels.api as sm
+from broom_sm import stats_report
 
-The extra-sm module was inspired from David Robinson's book "Introduction to Empirical Bayes".
-
-The goal of this project is to provide tidy summaries for the following statistical models in Statsmodel & Scipy, with some emperical bayesian functions for analysis:
-
-**broom-sm**
-
-+ OLS Regression
-+ OLS Regression Regularized (Lasso)
-+ GLM-Logit Regression
-+ GLM-Poisson Regression
-+ GLM-Beta Regression
-+ GLM-Gamma Regression
-+ GLM-Quantile Regression
-+ GLM-Mixed Linear Model Regression
-+ Survival Regression
-+ ARIMA Time Series
-+ ANOVA
-+ Kruskal-Wallis ANOVA
-+ Chi Square
-+ Pearson & Spearman Correlation
-+ Bootstrap
-+ Permutations
-+ Contingentcy Tables
-+ Goodness of fit (distributions)
-+ Principle Component Analysis (PCA)
-+ K-Means (Clusters)
-
-**extra-sm (emperical bayes functions)**
-
-* eb_fit_prior()
-* add_eb_estimate()
-* add_eb_prop_test()
-* eb_fit_mixmodel()
-* py_beta()
-* py_binom()
-* py_gamma()
-* py_possion()
-* py_normal()
-* eb_simulation()
-* bartz() - Bayesian Additive Regression Trees
-
-### Install Package
-
-```
-pip install git+https://github.com/jcvall/broom-sm.git
+mtcars = sm.datasets.get_rdataset("mtcars").data
+report = mtcars.stats_report(formula="mpg ~ wt + hp", stat_type="ols")
+print(report["tidy"])
 ```
 
-<!-- pyscaffold-notes -->
+## Key features
 
-## Note
+- 🔁 **Tidy verbs** that work on formulas or pre-fitted statsmodels results.
+- 🧱 **Extensible model registry** (`MODEL_CONFIG`) covering OLS, GLMs (Poisson, Gamma, Negative Binomial, Beta), GEE, MixedLM, PHReg/Survival, and Quantile Regression.
+- 📦 **Bootstrapping + Bayesian bootstrap** utilities with consistent logging.
+- 📊 **Diagnostics + plotting** helpers that return Matplotlib figures instead of printing.
+- 🧪 **Robust SEs & weights**: pass `cov_type`, `cov_kwds`, `family`, `link`, or `weights` through tidy/glance/augment.
+- 🛠️ **CLI** for quick reports (`broom-sm report --data data.csv --formula 'y ~ x1 + x2' --stat-type ols`).
 
-This project has been set up using PyScaffold 4.6. For details and usage
-information on PyScaffold see https://pyscaffold.org/.
+## Installation
+
+```bash
+pip install broom-sm          # core tidy + diagnostics
+pip install broom-sm[viz]     # adds seaborn/matplotlib
+pip install broom-sm[bayes]   # adds bayesian_bootstrap
+```
+
+## CLI usage
+
+```
+$ broom-sm report --data data.csv --formula "y ~ x1 + x2" --stat-type ols
+$ broom-sm compare --data data.csv --stat-type ols --formulas "y ~ x1" "y ~ x1 + x2"
+```
+
+Outputs default to JSON (pass `--format csv` for tabular output).
+
+## Extra namespace (`extra_sm`)
+
+Projects built on broom-sm historically imported `extra_sm.*` helpers for empirical Bayes workflows. broom-sm now ships the empty namespace package so those imports continue to resolve. If you maintain an extension that registers DataFrame methods via `extra_sm`, simply declare `broom-sm` as a dependency—no additional wiring is needed. The namespace acts as a rendezvous point for optional plugins without forcing broom-sm to import them eagerly.
+
+## Documentation
+
+Full documentation (API, how-to guides, tutorials, and plot gallery) lives in `docs/` and at <https://jcvall.github.io/broom-sm/>. Contributions are welcome—see `CONTRIBUTING.md` for workflow details.

@@ -1,5 +1,5 @@
 # License
 
-```{literalinclude}
-:language: MIT
+```{literalinclude} ../LICENSE.txt
+:language: none
 ```
