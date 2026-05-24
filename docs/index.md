@@ -1,49 +1,33 @@
 # broom-sm: Tidy Statistical Inference for Python
 
-```{toctree}
-:maxdepth: 2
-:caption: Getting Started
+## Documentation Navigation
 
-Overview <readme>
-Installation <installation>
-Quick Start <quickstart>
-```
+**Getting Started**
+- [Overview](README.md) — What is broom-sm?
+- [Installation](docs/installation.md) — Setup instructions
+- [Quick Start](docs/quickstart.md) — 5-minute guide
 
-```{toctree}
-:maxdepth: 2
-:caption: Tutorials
+**Tutorials**
+- [Tutorials Index](docs/tutorials/index.md) — End-to-end walkthroughs
+- [Tidy Workflow](docs/tutorials/tidy-workflow.md) — Core verbs example
+- [Bootstrap Inference](docs/tutorials/bootstrap-inference.md) — Resampling methods
 
-Tutorials Index <tutorials/index>
-Tidy Workflow Example <tutorials/tidy-workflow>
-```
+**How-to Guides**
+- [How-to Index](docs/howto/index.md) — Task-oriented recipes
+- [Extending MODEL_CONFIG](docs/howto/model_config.md) — Add custom models
+- [Robust Standard Errors](docs/howto/robust_ses.md) — Heteroskedasticity-consistent SEs
+- [Bootstrapping Workflows](docs/howto/bootstrap.md) — Resampling recipes
+- [Plot Gallery](docs/howto/plot_gallery.md) — Visualization examples
+- [Comparing Models](docs/howto/compare-models.md) — AIC, BIC, cross-validation
 
-```{toctree}
-:maxdepth: 2
-:caption: How-to Guides
+**API Reference**
+- [Complete API Docs](docs/api-reference.md) — All functions documented
 
-How-to Index <howto/index>
-Extending MODEL_CONFIG <howto/model_config>
-Robust Standard Errors <howto/robust_ses>
-Bootstrapping Workflows <howto/bootstrap>
-Plot Gallery <howto/plot_gallery>
-```
-
-```{toctree}
-:maxdepth: 2
-:caption: API Reference
-
-API Reference <api/modules>
-```
-
-```{toctree}
-:maxdepth: 1
-:caption: About
-
-Contributing <contributing>
-License <license>
-Authors <authors>
-Changelog <changelog>
-```
+**About**
+- [Contributing](CONTRIBUTING.md) — How to contribute
+- [License](LICENSE.txt) — MIT License
+- [Authors](AUTHORS.md) — Contributors
+- [Changelog](CHANGELOG.md) — Version history
 
 ## Overview
 

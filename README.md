@@ -198,10 +198,10 @@ Output defaults to JSON; pass `--format csv` for tabular output.
 
 ## Documentation
 
-- **[Tutorials](https://jcvall.github.io/broom-sm/tutorials/index.html)** — End-to-end walkthroughs
-- **[How-to Guides](https://jcvall.github.io/broom-sm/howto/index.html)** — Task-oriented recipes
-- **[API Reference](https://jcvall.github.io/broom-sm/api/modules.html)** — Complete function documentation
-- **[Vignettes](https://jcvall.github.io/broom-sm/articles/index.html)** — Statistical principles and design
+- **[Tutorials](docs/tutorials/index.md)** — End-to-end walkthroughs
+- **[How-to Guides](docs/howto/index.md)** — Task-oriented recipes
+- **[API Reference](docs/api-reference.md)** — Complete function documentation
+- **[Quick Start](docs/quickstart.md)** — Get started in 5 minutes
 
 ## Contributing
 

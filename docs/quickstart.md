@@ -144,10 +144,10 @@ Output:
 
 ## What's Next?
 
-- **[Tutorials](tutorials/index.html)** — End-to-end examples
-- **[How-to Guides](howto/index.html)** — Task-oriented recipes
-- **[API Reference](api/modules.html)** — Complete function documentation
-- **[Model Coverage](howto/model_config.html)** — Supported model types
+- **[Tutorials](docs/tutorials/index.md)** — End-to-end examples
+- **[How-to Guides](docs/howto/index.md)** — Task-oriented recipes
+- **[API Reference](docs/api-reference.md)** — Complete function documentation
+- **[Model Coverage](docs/howto/model_config.md)** — Supported model types
 
 ## Common Patterns
 

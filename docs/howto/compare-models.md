@@ -215,6 +215,6 @@ plt.show()
 
 ## Related Guides
 
-- **[Extending MODEL_CONFIG](model_config.html)** — Add custom model types
-- **[Bootstrapping Workflows](bootstrap.html)** — Resampling-based inference
-- **[Robust Standard Errors](robust_ses.html)** — Heteroskedasticity-consistent inference
+- **[Extending MODEL_CONFIG](model_config.md)** — Add custom model types
+- **[Bootstrapping Workflows](bootstrap.md)** — Resampling-based inference
+- **[Robust Standard Errors](robust_ses.md)** — Heteroskedasticity-consistent inference

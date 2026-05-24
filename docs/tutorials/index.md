@@ -24,7 +24,7 @@ Each tutorial follows a consistent structure:
 
 ## Available Tutorials
 
-### [Tidy Workflow with broom-sm](tidy-workflow.html)
+### [Tidy Workflow with broom-sm](tidy-workflow.md)
 
 Learn the core tidy verbs (`stats_tidy`, `stats_glance`, `stats_augment`) through a complete regression analysis. Covers:
 - Formula specification
@@ -39,7 +39,7 @@ Learn the core tidy verbs (`stats_tidy`, `stats_glance`, `stats_augment`) throug
 
 ---
 
-### [Bootstrap Inference](bootstrap-inference.html)
+### [Bootstrap Inference](bootstrap-inference.md)
 
 Master resampling-based inference using broom-sm's bootstrap helpers. Covers:
 - Non-parametric bootstrap with `boot_tidy()`
@@ -53,7 +53,7 @@ Master resampling-based inference using broom-sm's bootstrap helpers. Covers:
 
 ---
 
-### [Model Comparison and Selection](model-comparison.html)
+### [Model Comparison and Selection](../howto/compare-models.md)
 
 Learn to compare multiple models and select the best fit. Covers:
 - Information criteria (AIC, BIC)
@@ -67,7 +67,7 @@ Learn to compare multiple models and select the best fit. Covers:
 
 ---
 
-### [Diagnostics and Visualization](diagnostics-viz.html)
+### [Diagnostics and Visualization](../howto/plot_gallery.md)
 
 Comprehensive guide to regression diagnostics and visualization. Covers:
 - Residual analysis
@@ -93,11 +93,11 @@ Each tutorial builds on concepts from the previous ones.
 
 ## Contributing
 
-Have a tutorial idea? See our [Contributing Guide](../contributing.html) for how to submit new tutorials.
+Have a tutorial idea? See our [Contributing Guide](../CONTRIBUTING.md) for how to submit new tutorials.
 
 ## Related Resources
 
-- **[How-to Guides](../howto/index.html)** — Task-oriented recipes
-- **[API Reference](../api/modules.html)** — Function documentation
+- **[How-to Guides](../howto/index.md)** — Task-oriented recipes
+- **[API Reference](../api-reference.md)** — Function documentation
 - **[infer (R) tutorials](https://infer.tidymodels.org/articles/)** — Inspiration for statistical inference workflows
 - **[broom (R) vignettes](https://broom.tidymodels.org/articles/)** — Tidy model output examples

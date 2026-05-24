@@ -2,37 +2,24 @@
 
 How-to guides answer "How do I...?" questions for specific tasks. Each guide is a self-contained recipe you can adapt to your workflow.
 
-```{toctree}
-:maxdepth: 1
-
-Extending MODEL_CONFIG <model_config>
-Working with Robust Standard Errors <robust_ses>
-Bootstrapping Workflows <bootstrap>
-Plot Gallery <plot_gallery>
-Comparing Models <compare-models>
-Working with GLMs <glm-workflow>
-Mixed Effects Models <mixedlm>
-Survival Analysis <phreg>
-```
-
-## Guide Categories
+## Available Guides
 
 ### Model Configuration
 
-- **[Extending MODEL_CONFIG](model_config.html)** — Register custom model types
-- **[Working with GLMs](glm-workflow.html)** — Generalized linear models
-- **[Mixed Effects Models](mixedlm.html)** — Hierarchical and longitudinal data
-- **[Survival Analysis](phreg.html)** — Time-to-event modeling
+- **[Extending MODEL_CONFIG](model_config.md)** — Register custom model types
+- **[Working with GLMs](#glm-workflow)** — Generalized linear models *(coming soon)*
+- **[Mixed Effects Models](#mixedlm)** — Hierarchical and longitudinal data *(coming soon)*
+- **[Survival Analysis](#phreg)** — Time-to-event modeling *(coming soon)*
 
 ### Inference & Diagnostics
 
-- **[Robust Standard Errors](robust_ses.html)** — Heteroskedasticity and clustering
-- **[Bootstrapping Workflows](bootstrap.html)** — Resampling-based inference
-- **[Plot Gallery](plot_gallery.html)** — Visualization recipes
+- **[Robust Standard Errors](robust_ses.md)** — Heteroskedasticity and clustering
+- **[Bootstrapping Workflows](bootstrap.md)** — Resampling-based inference
+- **[Plot Gallery](plot_gallery.md)** — Visualization recipes
 
 ### Model Selection
 
-- **[Comparing Models](compare-models.html)** — AIC, BIC, and cross-validation
+- **[Comparing Models](compare-models.md)** — AIC, BIC, and cross-validation
 
 ## Quick Reference
 
@@ -97,6 +84,6 @@ stats_compare(models)
 
 ## Related Resources
 
-- **[Tutorials](../tutorials/index.html)** — End-to-end workflows
-- **[API Reference](../api/modules.html)** — Complete function documentation
-- **[Quick Start](../quickstart.html)** — Get started in 5 minutes
+- **[Tutorials](../docs/tutorials/index.md)** — End-to-end workflows
+- **[API Reference](../api-reference.md)** — Complete function documentation
+- **[Quick Start](../quickstart.md)** — Get started in 5 minutes

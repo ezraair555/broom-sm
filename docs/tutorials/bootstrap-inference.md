@@ -322,9 +322,9 @@ Key takeaways:
 
 ## Next Steps
 
-- **[Diagnostics and Visualization](diagnostics-viz.html)** — Learn regression diagnostics
-- **[Model Comparison](model-comparison.html)** — Compare multiple models
-- **[How-to: Bootstrapping](../howto/bootstrap.html)** — Quick reference for bootstrap workflows
+- **[Diagnostics and Visualization](../howto/plot_gallery.md)** — Learn regression diagnostics
+- **[Model Comparison](../howto/compare-models.md)** — Compare multiple models
+- **[How-to: Bootstrapping](../howto/bootstrap.md)** — Quick reference for bootstrap workflows
 
 ## References
 
