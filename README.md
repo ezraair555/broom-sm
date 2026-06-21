@@ -44,7 +44,7 @@ Projects built on broom-sm historically imported `extra_sm.*` helpers for empiri
 
 ## Changelog
 
-### Version 0.1.1 — 2026-06-20
+### Version 0.1.2 — 2026-06-20
 
 P0 fixes from the 2026-06-20 code review:
 

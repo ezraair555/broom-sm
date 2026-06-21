@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.1.1 — 2026-06-20
+## Version 0.1.2 — 2026-06-20
 
 ### P0 fixes
 
