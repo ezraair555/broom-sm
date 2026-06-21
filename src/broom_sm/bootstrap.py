@@ -28,7 +28,11 @@ def _bootstrap_apply(
         except Exception as exc:  # pragma: no cover - diagnostics only
             LOGGER.warning("Bootstrap sample %s failed for %s: %s", i, label, exc)
     if not frames:
-        return pd.DataFrame()
+        raise RuntimeError(
+            f"All {n_boot} bootstrap replications failed for {label}. "
+            "Check that the model fits on the original data and that resampling "
+            "produces enough variation for the fitter to converge."
+        )
     return pd.concat(frames).reset_index(drop=True)
 
 

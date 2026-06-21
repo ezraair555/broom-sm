@@ -34,10 +34,12 @@ def test_stats_glance_with_prefitted_model(sample_df):
 def test_stats_augment_retains_columns(sample_df):
     new_data = sample_df.copy()
     new_data["x1"] += 0.1
+    new_data.index = [f"new_{i}" for i in range(len(new_data))]
     augmented = sample_df.stats_augment(formula="y ~ x1 + x2", stat_type="ols", new_data=new_data)
     for column in new_data.columns:
         assert column in augmented.columns
     assert ".in_sample" in augmented.columns
+    assert not augmented[".in_sample"].any()
 
 
 def test_boot_tidy_smoke(sample_df):

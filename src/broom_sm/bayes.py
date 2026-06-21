@@ -8,11 +8,24 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_flavor as pf
 import seaborn as sns
+import warnings
 
 
 @pf.register_dataframe_method
 def bayes_boot(df: pd.DataFrame, target_column: str, n_samples: int) -> pd.Series:
-    sample = bb.mean(df[target_column].dropna().values, n_samples)
+    if target_column not in df.columns:
+        raise ValueError(f"target_column '{target_column}' not found in data columns: {list(df.columns)}")
+    if not isinstance(n_samples, int) or n_samples <= 0:
+        raise ValueError(f"n_samples must be a positive integer; got {n_samples}")
+    target = df[target_column]
+    n_missing = target.isna().sum()
+    if n_missing:
+        warnings.warn(
+            f"Dropping {n_missing} NaN value(s) from '{target_column}' before Bayesian bootstrap. "
+            f"Effective sample size is {len(target) - n_missing}.",
+            stacklevel=2,
+        )
+    sample = bb.mean(target.dropna().values, n_samples)
     return pd.Series(sample, name=f"{target_column}_bayes_boot")
 
 

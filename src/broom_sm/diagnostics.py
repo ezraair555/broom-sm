@@ -56,6 +56,11 @@ def stats_residual_plot(data: pd.DataFrame, x: Sequence[str], y: str) -> List[Tu
             warnings.warn(f"Skipping non-numeric column '{column}' for residual diagnostics", stacklevel=2)
             continue
         fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+        if data[y].dtype.kind not in "biufc":
+            raise ValueError(
+                f"Target column '{y}' must be numeric for residual diagnostics; "
+                f"got dtype {data[y].dtype}."
+            )
         sns.scatterplot(x=data[column], y=data[y], ax=axes[0], color="green", alpha=0.6)
         axes[0].set_title(f"Scatter: {column} vs {y}")
         stats.probplot(data[column].dropna(), plot=axes[1])
@@ -92,7 +97,15 @@ def stats_influence_plot(
 
 @pf.register_dataframe_method
 def stats_chisquare_plot(data: pd.DataFrame, x: str, y: str) -> Tuple[pd.DataFrame, plt.Figure]:
-    contingency = pd.crosstab(data[y].astype("category"), data[x].astype("category"))
+    x_ser = data[x].astype("category")
+    y_ser = data[y].astype("category")
+    if any(cat is None or (isinstance(cat, float) and np.isnan(cat)) for cat in x_ser.cat.categories):
+        x_ser = x_ser.cat.remove_categories([None, np.nan])
+    if any(cat is None or (isinstance(cat, float) and np.isnan(cat)) for cat in y_ser.cat.categories):
+        y_ser = y_ser.cat.remove_categories([None, np.nan])
+    contingency = pd.crosstab(y_ser, x_ser)
+    if contingency.empty:
+        raise ValueError("Contingency table is empty after removing missing categories.")
     chi2, p_value, dof, expected = stats.chi2_contingency(contingency, correction=True)
     residuals = contingency - expected
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -112,6 +125,7 @@ def stats_chisquare_plot(data: pd.DataFrame, x: str, y: str) -> Tuple[pd.DataFra
 def stats_vif(data: pd.DataFrame, formula: Optional[str] = None) -> pd.Series:
     if formula:
         _, X_df = dmatrices(formula, data=data, return_type="dataframe")
+        has_user_intercept = "Intercept" in X_df.columns
     else:
         numeric = data.select_dtypes(include=np.number)
         non_numeric_cols = [col for col in data.columns if col not in numeric.columns]
@@ -121,18 +135,29 @@ def stats_vif(data: pd.DataFrame, formula: Optional[str] = None) -> pd.Series:
                 f"Non-numeric columns: {non_numeric_cols}"
             )
         X_df = numeric
-        if "Intercept" not in X_df.columns:
+        has_user_intercept = "Intercept" in X_df.columns
+        if not has_user_intercept:
             X_df = sm.add_constant(X_df, has_constant="add")
+            has_user_intercept = True
 
     vif_values = {}
+    dropped_intercept = False
     for idx, column in enumerate(X_df.columns):
         if column == "Intercept":
+            dropped_intercept = True
             continue
         try:
             vif_values[column] = variance_inflation_factor(X_df.values, idx)
         except np.linalg.LinAlgError:
             warnings.warn(f"Perfect multicollinearity detected for '{column}'. Setting VIF to infinity.", stacklevel=2)
             vif_values[column] = np.inf
+    if dropped_intercept:
+        warnings.warn(
+            "VIF is undefined for the intercept; it has been omitted from the output. "
+            "Set include_constant=False in statsmodels or remove the intercept explicitly "
+            "if you do not want it in the design matrix.",
+            stacklevel=2,
+        )
     return pd.Series(vif_values, name="VIF")
 
 

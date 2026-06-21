@@ -11,8 +11,21 @@ from statsmodels.stats.anova import anova_lm
 from scipy import stats
 import statsmodels.formula.api as smf
 
-from ._utils import LOGGER, dataframe_like
+from ._utils import LOGGER, dataframe_like, coerce_weights
 from .model_registry import ModelSpec, get_model_spec, iter_model_config
+
+
+class _IndexError(ValueError):
+    pass
+
+
+def _validate_index_unique(data: pd.DataFrame, name: str) -> None:
+    if not data.index.is_unique:
+        raise _IndexError(
+            f"{name} index must be unique for reliable residual/influence alignment. "
+            "Reset the index with `.reset_index(drop=True)` or supply unique labels."
+        )
+
 
 
 def _infer_stat_type_from_model(model: Any) -> Optional[str]:
@@ -62,7 +75,10 @@ def prepare_fit(
     if spec.accepts_family and link is not None:
         call_kwargs["link"] = link
     if spec.accepts_weights and weights is not None:
-        call_kwargs["weights"] = weights
+        if stat_type == "ols":
+            call_kwargs["weights"] = weights
+        else:
+            call_kwargs["freq_weights"] = weights
 
     call_kwargs.update(extra)
     result = spec.fitter(**call_kwargs)
@@ -96,7 +112,7 @@ def stats_tidy(
         formula,
         stat_type,
         model,
-        {**fit_kwargs, "family": family, "link": link, "weights": weights},
+        {**fit_kwargs, "family": family, "link": link, "weights": coerce_weights(weights)},
     )
 
     params = model_result.params.rename("estimate").to_frame().reset_index().rename(columns={"index": "term"})
@@ -176,7 +192,7 @@ def stats_glance(
         formula,
         stat_type,
         model,
-        {**fit_kwargs, "family": family, "link": link, "weights": weights},
+        {**fit_kwargs, "family": family, "link": link, "weights": coerce_weights(weights)},
     )
 
     glance_dict: Dict[str, Any] = {"stat_type": resolved_type, "cov_type": getattr(model_result, "cov_type", "nonrobust")}
@@ -237,23 +253,38 @@ def stats_augment(
         fit_kwargs,
     )
 
+    _validate_index_unique(data, "data")
+    if new_data is not None:
+        _validate_index_unique(new_data, "new_data")
+        if not data.index.intersection(new_data.index).empty:
+            raise _IndexError(
+                "data and new_data indices overlap. Use disjoint indices or reset them."
+            )
+
     output = prediction_frame.copy()
     output[".fitted"] = model_result.predict(prediction_frame)
-    if hasattr(model_result, "resid") and new_data is None:
-        resid = model_result.resid
-        output.loc[data.index, ".resid"] = resid
-    elif new_data is not None:
+
+    in_sample = new_data is None
+    if hasattr(model_result, "resid") and in_sample:
+        output[".resid"] = model_result.resid.values
+    elif not in_sample:
         output[".resid"] = np.nan
 
-    if hasattr(model_result, "get_influence") and new_data is None:
+    if hasattr(model_result, "get_influence") and in_sample:
         influence = model_result.get_influence()
-        if hasattr(influence, "hat_matrix_diag"):
-            output.loc[data.index, ".hat"] = influence.hat_matrix_diag
-        if hasattr(influence, "cooks_distance"):
-            cooks, _ = influence.cooks_distance
-            output.loc[data.index, ".cooksd"] = cooks
-        if hasattr(influence, "resid_studentized_internal"):
-            output.loc[data.index, ".std.resid"] = influence.resid_studentized_internal
+        output[".hat"] = np.nan
+        output[".cooksd"] = np.nan
+        output[".std.resid"] = np.nan
+        for src, dst in [
+            ("hat_matrix_diag", ".hat"),
+            ("cooks_distance", ".cooksd"),
+            ("resid_studentized_internal", ".std.resid"),
+        ]:
+            if hasattr(influence, src):
+                values = getattr(influence, src)
+                if src == "cooks_distance":
+                    values = values[0]
+                output[dst] = values
 
     if include_prediction_intervals and hasattr(model_result, "get_prediction"):
         try:
@@ -265,14 +296,15 @@ def stats_augment(
         except Exception as exc:  # pragma: no cover - statsmodels edge cases
             LOGGER.warning("Prediction intervals unavailable: %s", exc)
 
-    in_sample_idx = set(data.index)
-    output[".in_sample"] = [idx in in_sample_idx for idx in output.index]
+    output[".in_sample"] = in_sample
     output["stat_type"] = resolved_type
     return output
 
 
 @pf.register_dataframe_method
 def stats_anova_tidy(data: pd.DataFrame, formula: str, anova_type: int = 2, **kwargs) -> pd.DataFrame:
+    if anova_type not in {1, 2, 3}:
+        raise ValueError(f"anova_type must be 1, 2, or 3; got {anova_type}")
     model = smf.ols(formula, data=data, **kwargs).fit()
     table = anova_lm(model, typ=anova_type).reset_index().rename(columns={"index": "term"})
     table.rename(columns={"PR(>F)": "p.value", "F": "statistic"}, inplace=True)
@@ -281,6 +313,10 @@ def stats_anova_tidy(data: pd.DataFrame, formula: str, anova_type: int = 2, **kw
 
 @pf.register_dataframe_method
 def stats_kruskal_tidy(data: pd.DataFrame, value_col: str, group_col: str) -> pd.DataFrame:
+    if group_col not in data.columns:
+        raise ValueError(f"group_col '{group_col}' not found in data columns: {list(data.columns)}")
+    if value_col not in data.columns:
+        raise ValueError(f"value_col '{value_col}' not found in data columns: {list(data.columns)}")
     grouped = [grp[value_col].dropna().values for _, grp in data.groupby(group_col)]
     grouped = [vals for vals in grouped if len(vals)]
     if len(grouped) < 2:
@@ -309,6 +345,13 @@ def stats_correlation_tidy(
         return pd.DataFrame({"term1": [col1], "term2": [col2], "correlation": [stat], "p.value": [p_val]})
 
     cols = columns or data.select_dtypes(include=np.number).columns.tolist()
+    if columns is not None:
+        missing = [col for col in columns if col not in data.columns]
+        if missing:
+            raise ValueError(f"columns not found in data: {missing}")
+        non_numeric = [col for col in columns if not pd.api.types.is_numeric_dtype(data[col])]
+        if non_numeric:
+            raise ValueError(f"correlation columns must be numeric; non-numeric: {non_numeric}")
     records = []
     for idx, col_a in enumerate(cols):
         for col_b in cols[idx + 1 :]:
@@ -321,10 +364,17 @@ def stats_correlation_tidy(
     return pd.DataFrame(records)
 
 
+def _quote_name(name: str) -> str:
+    if name.isidentifier():
+        return name
+    escaped = name.replace("\\", "\\\\").replace("'", "\\'")
+    return f"Q('{escaped}')"
+
+
 @pf.register_dataframe_method
 def stats_formula(data: pd.DataFrame, target: str, *exclude: str) -> str:
     predictors = [col for col in data.columns if col != target and col not in exclude]
-    return f"{target} ~ {' + '.join(predictors)}"
+    return f"{_quote_name(target)} ~ {' + '.join(_quote_name(col) for col in predictors)}"
 
 
 def stats_partial_dependence(
