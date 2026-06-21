@@ -75,10 +75,12 @@ def prepare_fit(
     if spec.accepts_family and link is not None:
         call_kwargs["link"] = link
     if spec.accepts_weights and weights is not None:
-        if stat_type == "ols":
+        if spec.accepts_family:
+            call_kwargs["freq_weights"] = weights
+        elif stat_type == "ols":
             call_kwargs["weights"] = weights
         else:
-            call_kwargs["freq_weights"] = weights
+            call_kwargs["weights"] = weights
 
     call_kwargs.update(extra)
     result = spec.fitter(**call_kwargs)
