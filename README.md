@@ -1,4 +1,4 @@
-# broom-sm
+# broom-sm <img src="README_files/broom_sm_hex_sticker.jpg" align="right" height="150" />
 
 **Tidy-style statistical inference for Python with statsmodels**
 
