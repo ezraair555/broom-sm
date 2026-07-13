@@ -74,10 +74,23 @@ def _standard_formula_fitter(fitter: Callable[..., Any]) -> Callable[..., Any]:
     return _wrapper
 
 
+def _ols_wls_fitter(formula: str, data, weights=None, **kwargs):
+    fit_kwargs = {
+        key: kwargs.pop(key)
+        for key in ["cov_type", "cov_kwds"]
+        if key in kwargs
+    }
+    if weights is not None:
+        model = smf.wls(formula, data=data, weights=weights, **kwargs)
+    else:
+        model = smf.ols(formula, data=data, **kwargs)
+    return model.fit(**fit_kwargs) if fit_kwargs else model.fit()
+
+
 register_model(
     "ols",
     ModelSpec(
-        fitter=_standard_formula_fitter(smf.ols),
+        fitter=_ols_wls_fitter,
         stat_name="t_stat",
         has_rsq=True,
         accepts_weights=True,

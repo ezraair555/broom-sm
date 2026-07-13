@@ -1,15 +1,18 @@
-"""Statistical diagnostics, plots, and helper utilities."""
 from __future__ import annotations
-
 import logging
 import warnings
 from typing import List, Optional, Sequence, Tuple
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+except ImportError:
+    plt = None
+    sns = None
+
 import numpy as np
 import pandas as pd
 import pandas_flavor as pf
-import seaborn as sns
 import statsmodels.api as sm
 from patsy import dmatrices
 from scipy import stats
@@ -17,6 +20,14 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.stats.power import TTestIndPower
 
 from ._utils import LOGGER
+
+
+def _assert_viz_available(func_name: str) -> None:
+    if plt is None or sns is None:
+        raise ImportError(
+            f"The visualization libraries (matplotlib/seaborn) are required for function '{func_name}'. "
+            "Please install them using 'pip install broom-sm[viz]'."
+        )
 
 
 def stats_power(
@@ -28,6 +39,7 @@ def stats_power(
     nobs: Optional[int] = None,
 ) -> Tuple[plt.Figure, plt.Axes, Optional[float]]:
     """Plot power curves for a two-sample t-test and return the figure."""
+    _assert_viz_available("stats_power")
     analysis = TTestIndPower()
     required = None
     if power is not None and nobs is None:
@@ -50,6 +62,7 @@ def stats_power(
 @pf.register_dataframe_method
 def stats_residual_plot(data: pd.DataFrame, x: Sequence[str], y: str) -> List[Tuple[str, plt.Figure]]:
     """Return scatter and QQ plots for each predictor versus target."""
+    _assert_viz_available("stats_residual_plot")
     figures: List[Tuple[str, plt.Figure]] = []
     for column in x:
         if data[column].dtype.kind not in "biufc":
@@ -72,6 +85,7 @@ def stats_residual_plot(data: pd.DataFrame, x: Sequence[str], y: str) -> List[Tu
 
 @pf.register_dataframe_method
 def stats_ols_plot(data: pd.DataFrame, x: Sequence[str], y: str) -> List[Tuple[str, plt.Figure]]:
+    _assert_viz_available("stats_ols_plot")
     figures: List[Tuple[str, plt.Figure]] = []
     for column in x:
         fig = sns.jointplot(x=column, y=y, data=data, kind="reg")
@@ -87,6 +101,7 @@ def stats_influence_plot(
     alpha: float = 0.05,
     **kwargs,
 ) -> plt.Figure:
+    _assert_viz_available("stats_influence_plot")
     from .tidy import prepare_fit
 
     model_result, _, _ = prepare_fit(data, formula, stat_type, None, kwargs)
@@ -97,6 +112,7 @@ def stats_influence_plot(
 
 @pf.register_dataframe_method
 def stats_chisquare_plot(data: pd.DataFrame, x: str, y: str) -> Tuple[pd.DataFrame, plt.Figure]:
+    _assert_viz_available("stats_chisquare_plot")
     x_ser = data[x].astype("category")
     y_ser = data[y].astype("category")
     if any(cat is None or (isinstance(cat, float) and np.isnan(cat)) for cat in x_ser.cat.categories):
@@ -194,6 +210,7 @@ def stats_coef_forest(
     reference_line: float = 0.0,
     sort: bool = True,
 ) -> Tuple[plt.Figure, plt.Axes]:
+    _assert_viz_available("stats_coef_forest")
     if sort:
         tidy_df = tidy_df.sort_values("estimate")
     fig, ax = plt.subplots(figsize=(6, max(3, len(tidy_df) * 0.4)))

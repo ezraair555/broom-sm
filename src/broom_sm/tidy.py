@@ -77,8 +77,6 @@ def prepare_fit(
     if spec.accepts_weights and weights is not None:
         if spec.accepts_family:
             call_kwargs["freq_weights"] = weights
-        elif stat_type == "ols":
-            call_kwargs["weights"] = weights
         else:
             call_kwargs["weights"] = weights
 
@@ -117,38 +115,28 @@ def stats_tidy(
         {**fit_kwargs, "family": family, "link": link, "weights": coerce_weights(weights)},
     )
 
-    params = model_result.params.rename("estimate").to_frame().reset_index().rename(columns={"index": "term"})
-    conf_int = (
-        model_result
-        .conf_int(alpha=alpha)
-        .rename(columns={0: "conf.low", 1: "conf.high"})
-        .reset_index()
-        .rename(columns={"index": "term"})
-    )
-    std_err = model_result.bse.rename("std.error").to_frame().reset_index().rename(columns={"index": "term"})
+    terms = model_result.params.index
+    conf_int = model_result.conf_int(alpha=alpha)
+    conf_low = conf_int[0]
+    conf_high = conf_int[1]
 
     stat_series = None
     if hasattr(model_result, "tvalues"):
         stat_series = model_result.tvalues
     elif hasattr(model_result, "zvalues"):
         stat_series = model_result.zvalues
-    if stat_series is not None:
-        stat_df = stat_series.rename("statistic").to_frame().reset_index().rename(columns={"index": "term"})
-    else:
-        stat_df = pd.DataFrame(columns=["term", "statistic"])
-
-    pvals = model_result.pvalues.rename("p.value").to_frame().reset_index().rename(columns={"index": "term"})
-
-    tidy_df = (
-        params
-        .merge(conf_int, on="term", how="left")
-        .merge(std_err, on="term", how="left")
-        .merge(stat_df, on="term", how="left")
-        .merge(pvals, on="term", how="left")
-    )
 
     stat_label = spec.stat_name if spec else "statistic"
-    tidy_df.rename(columns={"statistic": stat_label}, inplace=True)
+
+    tidy_df = pd.DataFrame({
+        "term": terms,
+        "estimate": model_result.params.values,
+        "conf.low": conf_low.values,
+        "conf.high": conf_high.values,
+        "std.error": model_result.bse.values,
+        stat_label: stat_series.values if stat_series is not None else np.nan,
+        "p.value": model_result.pvalues.values
+    }).reset_index(drop=True)
 
     cov_name = getattr(model_result, "cov_type", "nonrobust")
     tidy_df["cov_type"] = cov_name
@@ -267,34 +255,53 @@ def stats_augment(
     output[".fitted"] = model_result.predict(prediction_frame)
 
     in_sample = new_data is None
-    if hasattr(model_result, "resid") and in_sample:
-        output[".resid"] = model_result.resid.values
-    elif not in_sample:
+    if in_sample:
+        if hasattr(model_result, "resid"):
+            output[".resid"] = model_result.resid
+        
+        if hasattr(model_result, "get_influence"):
+            try:
+                influence = model_result.get_influence()
+                output[".hat"] = np.nan
+                output[".cooksd"] = np.nan
+                output[".std.resid"] = np.nan
+                
+                fit_data = getattr(model_result, "model", None)
+                fit_idx = getattr(fit_data, "data", None)
+                row_labels = getattr(fit_idx, "row_labels", None)
+                if row_labels is None and hasattr(model_result, "resid"):
+                    row_labels = model_result.resid.index
+                
+                for src, dst in [
+                    ("hat_matrix_diag", ".hat"),
+                    ("cooks_distance", ".cooksd"),
+                    ("resid_studentized_internal", ".std.resid"),
+                ]:
+                    if hasattr(influence, src):
+                        values = getattr(influence, src)
+                        if src == "cooks_distance":
+                            values = values[0]
+                        if row_labels is not None and len(values) == len(row_labels):
+                            output[dst] = pd.Series(values, index=row_labels)
+                        else:
+                            output[dst] = values
+            except Exception as exc:  # pragma: no cover
+                LOGGER.warning("Influence diagnostics unavailable: %s", exc)
+    else:
         output[".resid"] = np.nan
-
-    if hasattr(model_result, "get_influence") and in_sample:
-        influence = model_result.get_influence()
-        output[".hat"] = np.nan
-        output[".cooksd"] = np.nan
-        output[".std.resid"] = np.nan
-        for src, dst in [
-            ("hat_matrix_diag", ".hat"),
-            ("cooks_distance", ".cooksd"),
-            ("resid_studentized_internal", ".std.resid"),
-        ]:
-            if hasattr(influence, src):
-                values = getattr(influence, src)
-                if src == "cooks_distance":
-                    values = values[0]
-                output[dst] = values
 
     if include_prediction_intervals and hasattr(model_result, "get_prediction"):
         try:
-            pred = model_result.get_prediction(prediction_frame)
+            if hasattr(model_result, "_transform_predict_exog"):
+                exog, exog_index = model_result._transform_predict_exog(prediction_frame, transform=True)
+                pred = model_result.get_prediction(exog, transform=False, row_labels=exog_index)
+            else:
+                pred = model_result.get_prediction(prediction_frame)
+            
             summary = pred.summary_frame(alpha=alpha)
             for col in ["mean_se", "obs_ci_lower", "obs_ci_upper", "mean_ci_lower", "mean_ci_upper"]:
                 if col in summary:
-                    output[f".{col}"] = summary[col].values
+                    output[f".{col}"] = summary[col]
         except Exception as exc:  # pragma: no cover - statsmodels edge cases
             LOGGER.warning("Prediction intervals unavailable: %s", exc)
 
